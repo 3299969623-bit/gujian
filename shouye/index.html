@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>古建数鉴 - 中国古建筑数字可视化平台</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- 字体 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: #0a0a1a;
+            color: #ffffff;
+            overflow-x: hidden;
+            overflow-y: auto;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* 高科技色彩变量 */
+        :root {
+            --primary: #00f6ff;
+            --secondary: #7928ca;
+            --accent: #ff0080;
+            --background: #0a0a1a;
+            --surface: rgba(20, 20, 35, 0.8);
+            --text: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --glow-primary: 0 0 20px rgba(0, 246, 255, 0.5);
+            --glow-secondary: 0 0 20px rgba(121, 40, 202, 0.5);
+        }
+
+        /* 网格背景 */
+        .grid-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(0, 246, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 246, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+        }
+
+        /* 英雄区域 */
+        .hero-section {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(circle at center, rgba(0, 246, 255, 0.1), rgba(121, 40, 202, 0.1), rgba(10, 10, 26, 1));
+        }
+
+        .hero-content {
+            text-align: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .hero-title {
+            font-size: 5rem;
+            font-weight: 700;
+            margin-bottom: 30px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 246, 255, 0.3);
+            animation: titleGlow 3s ease-in-out infinite alternate, titleFloat 4s ease-in-out infinite;
+            position: relative;
+            display: inline-block;
+        }
+
+        @keyframes titleGlow {
+            0% {
+                text-shadow: 0 0 30px rgba(0, 246, 255, 0.3);
+            }
+
+            100% {
+                text-shadow: 0 0 50px rgba(0, 246, 255, 0.6), 0 0 80px rgba(121, 40, 202, 0.4);
+            }
+        }
+
+        @keyframes titleFloat {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+        }
+
+        /* 标题粒子效果容器 */
+        .title-particles {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* 标题粒子 */
+        .title-particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--primary);
+            border-radius: 50%;
+            animation: particleFloat 3s ease-in-out infinite;
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        @keyframes particleFloat {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: translateY(-20px) scale(1.5);
+                opacity: 0.5;
+            }
+        }
+
+        /* 装饰性几何图形 */
+        .decorative-shapes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .shape {
+            position: absolute;
+            border: 1px solid rgba(0, 246, 255, 0.2);
+            animation: shapeFloat 15s ease-in-out infinite;
+        }
+
+        .shape:nth-child(1) {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            width: 150px;
+            height: 150px;
+            border-radius: 30%;
+            top: 60%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .shape:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            border-radius: 40%;
+            bottom: 10%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        .shape:nth-child(4) {
+            width: 120px;
+            height: 120px;
+            border-radius: 20%;
+            top: 30%;
+            right: 25%;
+            animation-delay: 6s;
+        }
+
+        @keyframes shapeFloat {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.3;
+            }
+
+            25% {
+                transform: translateY(-20px) rotate(90deg);
+                opacity: 0.6;
+            }
+
+            50% {
+                transform: translateY(0) rotate(180deg);
+                opacity: 0.3;
+            }
+
+            75% {
+                transform: translateY(20px) rotate(270deg);
+                opacity: 0.6;
+            }
+        }
+
+        /* 动态线条 */
+        .dynamic-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .line {
+            position: absolute;
+            width: 2px;
+            height: 100px;
+            background: linear-gradient(to bottom, transparent, var(--primary), transparent);
+            animation: lineFloat 8s ease-in-out infinite;
+        }
+
+        @keyframes lineFloat {
+
+            0%,
+            100% {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+        }
+
+        /* 副标题 */
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 50px;
+            text-shadow: 0 0 10px rgba(0, 246, 255, 0.3);
+            animation: subtitleFade 2s ease-in-out;
+        }
+
+        @keyframes subtitleFade {
+            0% {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 内容部分 */
+        .content-section {
+            padding: 100px 40px;
+            position: relative;
+            background: rgba(10, 10, 26, 0.95);
+        }
+
+        .content-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 50px;
+            color: var(--primary);
+            text-shadow: var(--glow-primary);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+        }
+
+        .content-text {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .content-text h3 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: var(--text);
+        }
+
+        .content-text p {
+            margin-bottom: 20px;
+        }
+
+        .content-image {
+            position: relative;
+            height: 350px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 246, 255, 0.1);
+            border: 1px solid rgba(0, 246, 255, 0.2);
+        }
+
+        .content-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+        }
+
+        .content-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* 特效类 */
+        .animate-left {
+            opacity: 0;
+            transform: translateX(-100px);
+            transition: all 1s ease;
+        }
+
+        .animate-right {
+            opacity: 0;
+            transform: translateX(100px);
+            transition: all 1s ease;
+        }
+
+        .animate-left.visible,
+        .animate-right.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* 探索按钮区域 */
+        .explore-section {
+            padding: 80px 40px;
+            text-align: center;
+            position: relative;
+            background: linear-gradient(135deg, rgba(10, 10, 26, 0.9), rgba(20, 20, 40, 0.9));
+        }
+
+        .explore-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px 45px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--background);
+            border: none;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 246, 255, 0.5);
+        }
+
+        .explore-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 246, 255, 0.8);
+        }
+
+        .explore-button .button-icon {
+            font-size: 1.4rem;
+            transition: transform 0.3s ease;
+        }
+
+        .explore-button:hover .button-icon {
+            transform: translateX(8px);
+        }
+
+        /* 页脚 */
+        .footer {
+            padding: 50px 40px;
+            background: rgba(5, 5, 15, 0.95);
+            border-top: 1px solid rgba(0, 246, 255, 0.2);
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 15px;
+            text-shadow: var(--glow-primary);
+        }
+
+        .footer-description {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .footer-copyright {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 3.5rem;
+            }
+
+            .content-section {
+                padding: 60px 20px;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .content-image {
+                height: 250px;
+            }
+
+            .explore-section {
+                padding: 60px 20px;
+            }
+
+            .explore-button {
+                padding: 15px 40px;
+                font-size: 1.1rem;
+            }
+        }
+
+        /* 加载动画 */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader-circle {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 246, 255, 0.3);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--background);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 加载动画 -->
+    <div class="loader" id="loader">
+        <div class="loader-circle"></div>
+    </div>
+
+    <!-- 网格背景 -->
+    <div class="grid-background"></div>
+
+    <!-- 英雄区域 -->
+    <section class="hero-section">
+        <!-- 装饰性几何图形 -->
+        <div class="decorative-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+
+        <!-- 动态线条 -->
+        <div class="dynamic-lines" id="dynamicLines"></div>
+
+        <div class="hero-content">
+            <div style="position: relative; display: inline-block;">
+                <h1 class="hero-title">古建数鉴</h1>
+                <div class="title-particles" id="titleParticles"></div>
+            </div>
+            <p class="hero-subtitle">中国古建筑数字可视化平台</p>
+        </div>
+    </section>
+
+    <!-- 第一部分：古建现在的情况 -->
+    <section class="content-section">
+        <div class="content-container">
+            <h2 class="section-title">古建现状</h2>
+            <div class="content-grid">
+                <div class="content-text animate-left">
+                    <h3>古建筑的保护与传承</h3>
+                    <p>中国拥有丰富的古建筑遗产，这些建筑不仅是历史的见证，也是文化的载体。然而，随着时间的推移，许多古建筑面临着自然损坏、人为破坏等威胁。</p>
+                    <p>目前，全国已登记的古建筑超过5800处，其中1200余处被列为国家级文物保护单位。这些建筑涵盖了宫殿、寺庙、园林、民居等多种类型，分布在全国28个省份。</p>
+                    <p>尽管如此，古建筑的保护工作仍然面临着诸多挑战，包括资金短缺、技术落后、意识不足等问题。如何更好地保护和传承这些珍贵的文化遗产，成为我们亟待解决的问题。</p>
+                </div>
+                <div class="content-image animate-right">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=ancient%20Chinese%20architecture%20temple%2C%20traditional%20style%2C%20high%20quality%20photography&image_size=landscape_16_9"
+                        alt="古建筑现状">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第二部分：现代数据技术和古建的联动 -->
+    <section class="content-section">
+        <div class="content-container">
+            <h2 class="section-title">科技与古建的融合</h2>
+            <div class="content-grid">
+                <div class="content-image animate-left">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=futuristic%203D%20model%20of%20Chinese%20ancient%20architecture%2C%20high%20tech%20interface&image_size=landscape_16_9"
+                        alt="科技与古建融合">
+                </div>
+                <div class="content-text animate-right">
+                    <h3>现代技术的应用</h3>
+                    <p>随着科技的发展，现代数据技术为古建筑的保护和研究提供了新的可能性。3D建模、激光扫描、大数据分析等技术的应用，使得我们能够更全面、更精准地了解和保护古建筑。</p>
+                    <p>通过3D建模技术，我们可以创建高精度的古建筑数字模型，实现虚拟漫游和数字化保存。激光扫描技术则可以快速获取古建筑的精确数据，为保护和修复工作提供科学依据。</p>
+                    <p>大数据分析技术帮助我们整合和分析古建筑的历史、结构、材料等多维度数据，挖掘其中的规律和价值，为古建筑的保护和研究提供新的视角。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 第三部分：古建与数据的结合 -->
+    <section class="content-section">
+        <div class="content-container">
+            <h2 class="section-title">数据驱动的古建保护</h2>
+            <div class="content-grid">
+                <div class="content-text animate-left">
+                    <h3>数据时代的古建保护</h3>
+                    <p>在数据时代，古建筑的保护和研究正在经历一场数字化革命。通过构建古建筑数据库，我们可以实现对古建筑的全面管理和监测。</p>
+                    <p>数据可视化技术使得复杂的古建筑信息变得直观可感，帮助决策者和研究人员更好地理解和分析古建筑的状况。人工智能技术则可以辅助识别古建筑的损伤和病害，预测其发展趋势。</p>
+                    <p>古建数鉴平台正是在这样的背景下诞生的，我们致力于通过数据技术，为古建筑的保护、研究和传承提供全方位的支持，让千年建筑智慧在数字时代焕发新的生机。</p>
+                </div>
+                <div class="content-image animate-right">
+                    <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=data%20visualization%20dashboard%20about%20ancient%20Chinese%20architecture%2C%20modern%20UI&image_size=landscape_16_9"
+                        alt="数据驱动的古建保护">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 探索按钮区域 -->
+    <section class="explore-section">
+        <a href="shujumianban.html" class="explore-button">
+            <span class="button-text">开始探索</span>
+            <span class="button-icon">→</span>
+        </a>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <h3 class="footer-title">古建数鉴</h3>
+            <p class="footer-description">中国古建筑数字可视化平台，将千年建筑智慧与现代数据科技完美融合</p>
+            <p class="footer-copyright">© 2026 古建数鉴 - 中国古建筑数字可视化平台</p>
+        </div>
+    </footer>
+
+    <script>
+        // 页面加载完成后执行
+        window.addEventListener('DOMContentLoaded', function () {
+            // 隐藏加载动画
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+            }, 1000);
+
+            // 生成标题粒子效果
+            function createTitleParticles() {
+                const titleParticles = document.getElementById('titleParticles');
+                if (!titleParticles) return;
+
+                // 清除现有粒子
+                titleParticles.innerHTML = '';
+
+                // 创建粒子
+                for (let i = 0; i < 20; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'title-particle';
+
+                    // 随机位置
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = Math.random() * 100 + '%';
+
+                    // 随机动画延迟和持续时间
+                    particle.style.animationDelay = Math.random() * 3 + 's';
+                    particle.style.animationDuration = (2 + Math.random() * 2) + 's';
+
+                    // 随机大小
+                    const size = 1 + Math.random() * 2;
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+
+                    titleParticles.appendChild(particle);
+                }
+            }
+
+            // 生成动态线条
+            function createDynamicLines() {
+                const dynamicLines = document.getElementById('dynamicLines');
+                if (!dynamicLines) return;
+
+                // 清除现有线条
+                dynamicLines.innerHTML = '';
+
+                // 创建线条
+                for (let i = 0; i < 10; i++) {
+                    const line = document.createElement('div');
+                    line.className = 'line';
+
+                    // 随机位置
+                    line.style.left = Math.random() * 100 + '%';
+
+                    // 随机动画延迟和持续时间
+                    line.style.animationDelay = Math.random() * 8 + 's';
+                    line.style.animationDuration = (6 + Math.random() * 4) + 's';
+
+                    dynamicLines.appendChild(line);
+                }
+            }
+
+            // 滚动动画
+            function handleScrollAnimation() {
+                const elements = document.querySelectorAll('.animate-left, .animate-right');
+
+                elements.forEach(element => {
+                    const elementTop = element.getBoundingClientRect().top;
+                    const elementBottom = element.getBoundingClientRect().bottom;
+                    const windowHeight = window.innerHeight;
+
+                    if (elementTop < windowHeight * 0.8 && elementBottom > 0) {
+                        element.classList.add('visible');
+                    } else {
+                        element.classList.remove('visible');
+                    }
+                });
+            }
+
+            // 启动动画
+            createTitleParticles();
+            createDynamicLines();
+
+            // 初始检查
+            handleScrollAnimation();
+
+            // 滚动时检查
+            window.addEventListener('scroll', handleScrollAnimation);
+        });
+    </script>
+</body>
+
+</html>

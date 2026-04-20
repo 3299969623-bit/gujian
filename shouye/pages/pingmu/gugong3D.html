@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>3D模型查看器 - 真实物理材质版</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #loading {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 100px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 100;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* 返回按钮样式 */
+        .back-home-btn {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 128, 255, 0.5);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 12px rgba(0, 128, 255, 0.3);
+            z-index: 100;
+        }
+
+        .back-home-btn:hover {
+            border-color: rgba(0, 191, 255, 0.8);
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* 返回图标 */
+        .back-icon {
+            width: 30px;
+            height: 30px;
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpath d="M19 12H5"%3E%3C/path%3E%3Cpath d="m12 19-7-7 7-7"%3E%3C/path%3E%3C/svg%3E') center center no-repeat;
+            background-size: contain;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading">正在初始化3D场景...</div>
+    <div id="canvas-container"></div>
+    <div id="info">鼠标拖拽旋转 · 滚轮缩放 · 右键拖拽平移 | H:帮助 R:复位 G:辅助</div>
+
+    <a href="gugong.html" class="back-home-btn" title="返回故宫结构特点">
+        <div class="back-icon"></div>
+    </a>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+
+    <script>
+        let scene, camera, renderer, controls, model;
+
+        function init() {
+            // 1. 场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050a1e); // 深蓝色背景，营造宇宙感
+
+            // 2. 相机
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(15, 10, 15);
+
+            // 3. 渲染器 - 启用高级渲染特性
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping; // 电影级色调映射
+            renderer.toneMappingExposure = 1.0;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.physicallyCorrectLights = true; // 物理正确光照
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // 4. 光照系统 - 科幻风格
+            const ambientLight = new THREE.AmbientLight(0x4080ff, 0.4); // 蓝色环境光
+            scene.add(ambientLight);
+
+            // 主光源 - 科幻蓝光
+            const sunLight = new THREE.DirectionalLight(0x40bfff, 2.5);
+            sunLight.position.set(50, 80, 30);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 4096;
+            sunLight.shadow.mapSize.height = 4096;
+            sunLight.shadow.camera.near = 0.1;
+            sunLight.shadow.camera.far = 500;
+            sunLight.shadow.bias = -0.0001;
+            scene.add(sunLight);
+
+            // 补光 - 科幻紫色
+            const skyLight = new THREE.HemisphereLight(0x8a2be2, 0x000033, 0.8);
+            scene.add(skyLight);
+
+            // 轮廓光 - 增强立体感
+            const rimLight = new THREE.DirectionalLight(0x00ffff, 1.0);
+            rimLight.position.set(-20, 10, -20);
+            scene.add(rimLight);
+
+            // 5. 科幻网格地面
+            const gridHelper = new THREE.GridHelper(100, 40, 0x004080, 0x002040);
+            gridHelper.position.y = 0;
+            gridHelper.visible = true;
+            scene.add(gridHelper);
+            window.gridHelper = gridHelper;
+
+            // 6. 发光线条效果
+            createSciFiGrid();
+
+            // 7. 粒子效果
+            createParticles();
+
+            // 8. 星空背景
+            createStarfield();
+
+            // 9. 星云效果
+            createNebula();
+
+            // 10. 动态光效
+            createLightEffects();
+
+
+
+            // 5. 控制器
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // 6. 辅助工具
+            const axesHelper = new THREE.AxesHelper(10);
+            axesHelper.visible = false;
+            scene.add(axesHelper);
+            window.axesHelper = axesHelper;
+
+            // 7. 加载模型
+            loadModel();
+        }
+
+        function loadModel() {
+            const loadingElement = document.getElementById('loading');
+            const loader = new THREE.GLTFLoader();
+
+            loader.load(
+                'new3.glb',
+                function (gltf) {
+                    model = gltf.scene;
+                    scene.add(model);
+                    console.log('✅ 模型加载成功，应用真实物理材质。');
+
+                    // ✅ 关键：转换为 MeshPhysicalMaterial 实现照片级真实感
+                    model.traverse((child) => {
+                        if (child.isMesh && child.material) {
+                            const materials = Array.isArray(child.material) ? child.material : [child.material];
+
+                            const newMaterials = materials.map((mat) => {
+                                // 创建 MeshPhysicalMaterial - 支持清漆、透光、真实反射
+                                const newMat = new THREE.MeshPhysicalMaterial({
+                                    // 基础颜色贴图
+                                    map: mat.map || null,
+
+                                    // PBR 核心贴图
+                                    normalMap: mat.normalMap || null,
+                                    roughnessMap: mat.roughnessMap || null,
+                                    metalnessMap: mat.metalnessMap || null,
+                                    aoMap: mat.aoMap || null,
+
+                                    // 高级贴图
+                                    clearcoatMap: mat.clearcoatMap || null,
+                                    clearcoatNormalMap: mat.clearcoatNormalMap || null,
+                                    clearcoatRoughnessMap: mat.clearcoatRoughnessMap || null,
+
+                                    // 透光效果（玻璃/玉石等）
+                                    transmissionMap: mat.transmissionMap || null,
+                                    thicknessMap: mat.thicknessMap || null,
+
+                                    // 光泽层（丝绸/天鹅绒）
+                                    sheenColorMap: mat.sheenColorMap || null,
+                                    sheenRoughnessMap: mat.sheenRoughnessMap || null,
+
+                                    // 颜色属性 - 科技风格
+                                    color: mat.color ? mat.color.clone() : new THREE.Color(0x2a4d6e), // 科技蓝灰色
+                                    emissive: mat.emissive ? mat.emissive.clone() : new THREE.Color(0x004080), // 蓝色发光效果
+
+                                    // PBR 核心参数 - 科技感
+                                    roughness: mat.roughness !== undefined ? mat.roughness : 0.3, // 更光滑
+                                    metalness: mat.metalness !== undefined ? mat.metalness : 0.8, // 更金属感
+
+                                    // 高级物理参数
+                                    ior: mat.ior || 1.5,                    // 折射率（玻璃1.5，钻石2.4）
+                                    reflectivity: mat.reflectivity || 0.8, // 更高反射率
+
+                                    // 清漆涂层（车漆、抛光表面）
+                                    clearcoat: mat.clearcoat || 0.6,                    // 清漆强度 0-1
+                                    clearcoatRoughness: mat.clearcoatRoughness || 0.1,  // 清漆粗糙度
+
+                                    // 透光效果（玻璃、玉石、水晶）
+                                    transmission: mat.transmission || 0.0,  // 透光率 0-1
+                                    thickness: mat.thickness || 0.0,          // 厚度（影响折射）
+                                    attenuationDistance: mat.attenuationDistance || Infinity,
+                                    attenuationColor: mat.attenuationColor ? mat.attenuationColor.clone() : new THREE.Color(0xffffff),
+
+                                    // 光泽层（布料、织物）
+                                    sheen: mat.sheen || 0.0,                  // 光泽强度
+                                    sheenRoughness: mat.sheenRoughness || 1.0,
+                                    sheenColor: mat.sheenColor ? mat.sheenColor.clone() : new THREE.Color(0x000000),
+
+                                    // 各向异性（拉丝金属、头发）
+                                    anisotropy: mat.anisotropy || 0.0,
+                                    anisotropyRotation: mat.anisotropyRotation || 0.0,
+
+                                    // Specular 控制
+                                    specularIntensity: mat.specularIntensity !== undefined ? mat.specularIntensity : 1.0,
+                                    specularColor: mat.specularColor ? mat.specularColor.clone() : new THREE.Color(0xffffff),
+
+                                    // 透明设置
+                                    transparent: mat.transparent || false,
+                                    opacity: mat.opacity !== undefined ? mat.opacity : 1.0,
+                                    alphaTest: mat.alphaTest || 0.0,
+                                    side: mat.side || THREE.FrontSide,
+
+                                    // 深度写入优化
+                                    depthWrite: mat.transparent ? false : true,
+                                });
+
+                                // 复制法线贴图强度
+                                if (mat.normalMap && mat.normalScale) {
+                                    newMat.normalScale = mat.normalScale.clone();
+                                }
+
+                                // 复制清漆法线强度
+                                if (mat.clearcoatNormalMap && mat.clearcoatNormalScale) {
+                                    newMat.clearcoatNormalScale = mat.clearcoatNormalScale.clone();
+                                }
+
+                                // 复制各向异性贴图
+                                if (mat.anisotropyMap) {
+                                    newMat.anisotropyMap = mat.anisotropyMap;
+                                }
+
+                                // 环境光遮蔽强度
+                                if (mat.aoMap) {
+                                    newMat.aoMapIntensity = mat.aoMapIntensity !== undefined ? mat.aoMapIntensity : 1.0;
+                                }
+
+                                // 自发光强度 - 增强科技感
+                                if (mat.emissiveMap || (mat.emissive && mat.emissive.r > 0)) {
+                                    newMat.emissiveIntensity = mat.emissiveIntensity !== undefined ? mat.emissiveIntensity : 2.0;
+                                } else {
+                                    // 为所有材质添加基础发光效果
+                                    newMat.emissiveIntensity = 0.8;
+                                }
+
+                                // 透光贴图
+                                if (mat.transmissionMap) {
+                                    newMat.transmission = mat.transmission || 1.0;
+                                }
+
+                                return newMat;
+                            });
+
+                            child.material = newMaterials.length === 1 ? newMaterials[0] : newMaterials;
+
+                            // 启用阴影
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+
+                    focusModelOnLoad();
+                    loadingElement.classList.add('hidden');
+                },
+                function (xhr) {
+                    const percentComplete = (xhr.loaded / xhr.total * 100).toFixed(1);
+                    loadingElement.textContent = `加载模型... ${percentComplete}%`;
+                },
+                function (error) {
+                    console.error('❌ 模型加载失败:', error);
+                    loadingElement.innerHTML = `<span style="color:#ff6b6b;">加载失败</span>`;
+                }
+            );
+        }
+
+        function focusModelOnLoad() {
+            if (!model) return;
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+
+            const cameraDistance = Math.max(maxDim * 0.5, 3);
+            camera.position.copy(center);
+            camera.position.x += cameraDistance;
+            camera.position.y += cameraDistance * 0.2;
+            camera.position.z += cameraDistance;
+            camera.lookAt(center);
+
+            if (controls) {
+                controls.target.copy(center);
+                controls.update();
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (controls) controls.update();
+            updateSciFiEffects(); // 更新科幻效果
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        window.addEventListener('resize', onWindowResize);
+
+        function onKeyDown(event) {
+            switch (event.key.toLowerCase()) {
+                case 'h':
+                    document.getElementById('info').style.display =
+                        document.getElementById('info').style.display === 'none' ? 'block' : 'none';
+                    break;
+                case 'r':
+                    if (model) focusModelOnLoad();
+                    break;
+                case 'g':
+                    if (window.axesHelper && window.gridHelper) {
+                        const isVisible = !window.axesHelper.visible;
+                        window.axesHelper.visible = isVisible;
+                        window.gridHelper.visible = isVisible;
+                    }
+                    break;
+            }
+        }
+        document.addEventListener('keydown', onKeyDown);
+
+        // 创建科幻风格的发光网格
+        function createSciFiGrid() {
+            const gridGroup = new THREE.Group();
+
+            // 水平线条
+            for (let i = -20; i <= 20; i += 2) {
+                const geometry = new THREE.BufferGeometry();
+                const points = [];
+                points.push(new THREE.Vector3(-20, 0.01, i));
+                points.push(new THREE.Vector3(20, 0.01, i));
+                geometry.setFromPoints(points);
+
+                const material = new THREE.LineBasicMaterial({
+                    color: new THREE.Color(0x0080ff).multiplyScalar(0.6 + Math.sin(i * 0.1) * 0.4),
+                    transparent: true,
+                    opacity: 0.8
+                });
+
+                const line = new THREE.Line(geometry, material);
+                gridGroup.add(line);
+            }
+
+            // 垂直线条
+            for (let i = -20; i <= 20; i += 2) {
+                const geometry = new THREE.BufferGeometry();
+                const points = [];
+                points.push(new THREE.Vector3(i, 0.01, -20));
+                points.push(new THREE.Vector3(i, 0.01, 20));
+                geometry.setFromPoints(points);
+
+                const material = new THREE.LineBasicMaterial({
+                    color: new THREE.Color(0x0080ff).multiplyScalar(0.6 + Math.cos(i * 0.1) * 0.4),
+                    transparent: true,
+                    opacity: 0.8
+                });
+
+                const line = new THREE.Line(geometry, material);
+                gridGroup.add(line);
+            }
+
+            scene.add(gridGroup);
+        }
+
+        // 创建粒子效果
+        function createParticles() {
+            const particleGeometry = new THREE.BufferGeometry();
+            const particleCount = 1000;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount; i++) {
+                const i3 = i * 3;
+
+                // 随机位置
+                positions[i3] = (Math.random() - 0.5) * 100;
+                positions[i3 + 1] = Math.random() * 50;
+                positions[i3 + 2] = (Math.random() - 0.5) * 100;
+
+                // 蓝色系颜色
+                colors[i3] = 0.0;
+                colors[i3 + 1] = 0.4 + Math.random() * 0.6;
+                colors[i3 + 2] = 0.8 + Math.random() * 0.2;
+            }
+
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particles = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particles);
+        }
+
+        // 创建星空背景
+        function createStarfield() {
+            const starGeometry = new THREE.BufferGeometry();
+            const starCount = 5000;
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+
+            for (let i = 0; i < starCount; i++) {
+                const i3 = i * 3;
+
+                // 随机位置
+                positions[i3] = (Math.random() - 0.5) * 2000;
+                positions[i3 + 1] = (Math.random() - 0.5) * 2000;
+                positions[i3 + 2] = (Math.random() - 0.5) * 2000;
+
+                // 随机颜色
+                const brightness = Math.random();
+                colors[i3] = brightness;
+                colors[i3 + 1] = brightness * 0.8;
+                colors[i3 + 2] = brightness;
+            }
+
+            starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const starMaterial = new THREE.PointsMaterial({
+                size: 2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            const starfield = new THREE.Points(starGeometry, starMaterial);
+            scene.add(starfield);
+        }
+
+        // 创建星云效果
+        function createNebula() {
+            const geometry = new THREE.SphereGeometry(500, 32, 32);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x1a2b4c,
+                transparent: true,
+                opacity: 0.1,
+                side: THREE.BackSide
+            });
+
+            const nebula = new THREE.Mesh(geometry, material);
+            scene.add(nebula);
+        }
+
+        // 创建动态光效
+        function createLightEffects() {
+            const lightGeometry = new THREE.BufferGeometry();
+            const lightCount = 50;
+            const positions = new Float32Array(lightCount * 3);
+            const colors = new Float32Array(lightCount * 3);
+
+            for (let i = 0; i < lightCount; i++) {
+                const i3 = i * 3;
+
+                // 随机位置
+                positions[i3] = (Math.random() - 0.5) * 100;
+                positions[i3 + 1] = Math.random() * 50;
+                positions[i3 + 2] = (Math.random() - 0.5) * 100;
+
+                // 青色系颜色
+                colors[i3] = 0.0;
+                colors[i3 + 1] = 0.8 + Math.random() * 0.2;
+                colors[i3 + 2] = 1.0;
+            }
+
+            lightGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            lightGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const lightMaterial = new THREE.PointsMaterial({
+                size: 3,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+
+            const lightEffects = new THREE.Points(lightGeometry, lightMaterial);
+            scene.add(lightEffects);
+        }
+
+        // 动画更新
+        function updateSciFiEffects() {
+            const time = Date.now() * 0.001;
+
+            // 更新发光网格
+            scene.traverse((child) => {
+                if (child.isLine) {
+                    const material = child.material;
+                    if (material) {
+                        const intensity = 0.6 + Math.sin(time + child.position.x * 0.1) * 0.4;
+                        material.color.set(new THREE.Color(0x0080ff).multiplyScalar(intensity));
+                    }
+                }
+            });
+
+            // 更新粒子
+            scene.traverse((child) => {
+                if (child.isPoints) {
+                    child.rotation.y += 0.001;
+                }
+            });
+
+            // 更新星空背景
+            scene.traverse((child) => {
+                if (child.isPoints && child.geometry.attributes.position.count > 1000) {
+                    child.rotation.y += 0.0001;
+                }
+            });
+        }
+
+        init();
+        animate();
+    </script>
+</body>
+
+</html>

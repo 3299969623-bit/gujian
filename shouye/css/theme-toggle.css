@@ -1,0 +1,42 @@
+/*======== 主题变量 ========*/
+:root {
+    --primary: #00f6ff;
+    --secondary: #ff4d94;
+    --bg: #0b0f18;
+    --panel-bg: rgba(20, 26, 44, .45);
+    --border: 1px solid rgba(0, 246, 255, .2);
+    --text: #fff;
+}
+
+[data-theme="cyber"] {
+    --primary: #ff00c8;
+    --secondary: #00f6ff;
+    --bg: #100818;
+    --panel-bg: rgba(44, 20, 40, .45);
+    --border: 1px solid rgba(255, 0, 200, .3);
+    --text: #ffe6f7;
+}
+
+
+
+/*======== 右下角云游古建按钮 ========*/
+.btn-arch-tour {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 999;
+    background: var(--secondary);
+    color: var(--text);
+    border: 0;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: .3s;
+    text-decoration: none;
+}
+
+.btn-arch-tour:hover {
+    background: var(--primary);
+    color: var(--bg);
+}
