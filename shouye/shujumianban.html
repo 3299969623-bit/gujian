@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>中国古建筑 · 数据感知中枢</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+    <link rel="stylesheet" href="css/style.css">
+    <!-- 字体 & 图标库 -->
+    <link href="//fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="//at.alicdn.com/t/font_2551190_6tkdo4j2uxj.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/theme-toggle.css">
+</head>
+
+<body>
+    <!-- 粒子背景 -->
+    <canvas id="particle"></canvas>
+    <div id="map" style="display:none;"></div>
+
+    <!-- 顶部 KPI 横条 -->
+    <header class="top-bar">
+        <h1 class="glitch" data-text="古建数鉴">古建数鉴</h1>
+        <!-- 可点击 KPI 卡片 -->
+        <nav class="kpi-cards">
+            <!-- 主题切换图标按钮 -->
+            <button class="theme-toggle-icon" onclick="toggleTheme()" title="切换主题"></button>
+            <a class="kpi-card" href="pages/arch-list.html">
+                <span class="number">5,832</span>
+                <label>已登记古建</label>
+            </a>
+            <a class="kpi-card" href="pages/national.html">
+                <span class="number">1,246</span>
+                <label>国家级文保</label>
+            </a>
+            <a class="kpi-card" href="pages/digital.html">
+                <span class="number">372</span>
+                <label>数字化完成</label>
+            </a>
+            <a class="kpi-card" href="pages/quality.html">
+                <span class="number">98.7%</span>
+                <label>数据准确率</label>
+            </a>
+        </nav>
+    </header>
+
+    <!-- 三列布局 -->
+    <!-- 三列布局：每列 2 张图，共 6 张全国数据表 -->
+    <!-- 顶部 KPI 横条保持不变 -->
+
+
+    <!-- 可滚动的主区域 -->
+    <main class="dashboard-scroll">
+        <!-- 第一行 -->
+        <section class="row">
+            <div class="panel" id="arch-province">
+                <div class="panel-header">
+                    <h3>各省古建筑登记量</h3>
+                    <button class="btn-download" onclick="downloadChart('arch-province')">下载</button>
+                </div>
+                <div class="panel-body" id="arch-province-chart"></div>
+            </div>
+
+            <div class="panel" id="arch-rank">
+                <div class="panel-header">
+                    <h3>建筑功能分布</h3>
+                    <button class="btn-download" onclick="downloadChart('arch-rank')">下载</button>
+                </div>
+                <div class="panel-body" id="arch-rank-chart"></div>
+            </div>
+        </section>
+
+        <!-- 第二行 -->
+        <section class="row">
+            <div class="panel" id="arch-type">
+                <div class="panel-header">
+                    <h3>建筑类型分布</h3>
+                    <button class="btn-download" onclick="downloadChart('arch-type')">下载</button>
+                </div>
+                <div class="panel-body" id="arch-type-chart"></div>
+            </div>
+
+            <div class="panel" id="arch-age">
+                <div class="panel-header">
+                    <h3>年代分布</h3>
+                    <button class="btn-download" onclick="downloadChart('arch-age')">下载</button>
+                </div>
+                <div class="panel-body" id="arch-age-chart"></div>
+            </div>
+        </section>
+
+        <!-- 第三行 -->
+        <section class="row">
+            <div class="panel" id="arch-repair">
+                <div class="panel-header">
+                    <h3>修缮状态漏斗</h3>
+                    <button class="btn-download" onclick="downloadChart('arch-repair')">下载</button>
+                </div>
+                <div class="panel-body" id="arch-repair-chart"></div>
+            </div>
+
+            <div class="panel" id="arch-trend">
+                <div class="panel-header">
+                    <h3>近10年新增趋势</h3>
+                    <button class="btn-download" onclick="downloadChart('arch-trend')">下载</button>
+                </div>
+                <div class="panel-body" id="arch-trend-chart"></div>
+            </div>
+        </section>
+    </main>
+    <!-- 资源 -->
+    <script src="//cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/animate.js"></script>
+    <script src="js/zoom-theme.js"></script>
+
+    <script>
+        // 主题切换功能
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme') || 'default';
+            const newTheme = currentTheme === 'default' ? 'cyber' : 'default';
+            body.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+
+            // 更新全局主题变量
+            if (typeof curTheme !== 'undefined') {
+                curTheme = newTheme;
+            }
+
+            // 重新初始化图表以应用新主题和动画效果
+            if (typeof initZoomChart !== 'undefined' && typeof provinceOpt !== 'undefined') {
+                // 先销毁现有图表
+                chartPool.forEach(c => c.dispose());
+                chartPool.length = 0;
+                // 重新初始化图表
+                chartPool.push(
+                    initZoomChart('arch-province-chart', provinceOpt),
+                    initZoomChart('arch-rank-chart', rankOpt),
+                    initZoomChart('arch-type-chart', typeOpt),
+                    initZoomChart('arch-age-chart', ageOpt),
+                    initZoomChart('arch-repair-chart', repairOpt),
+                    initZoomChart('arch-trend-chart', trendOpt)
+                );
+            }
+        }
+
+        // 初始化主题
+        document.addEventListener('DOMContentLoaded', function () {
+            const savedTheme = localStorage.getItem('theme') || 'default';
+            document.body.setAttribute('data-theme', savedTheme);
+            // 更新全局主题变量
+            if (typeof curTheme !== 'undefined') {
+                curTheme = savedTheme;
+            }
+        });
+    </script>
+
+    <!-- 返回主页按钮 -->
+    <a href="index.html" class="back-home-btn" title="返回主页">
+        <div class="back-icon"></div>
+    </a>
+
+    <!-- 云游按钮 -->
+    <a href="pages/arch-list.html" class="arch-tour-btn" title="云游古建">
+        <div class="tour-icon"></div>
+    </a>
+</body>
+
+</html>
