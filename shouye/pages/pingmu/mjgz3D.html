@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>苗族建筑3D展示</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #loading {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+
+        #info {
+            position: absolute;
+            bottom: 20px;
+            left: 100px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            z-index: 100;
+            font-size: 14px;
+            user-select: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* 返回按钮样式 */
+        .back-home-btn {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(0, 128, 255, 0.5);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 12px rgba(0, 128, 255, 0.3);
+            z-index: 100;
+        }
+
+        .back-home-btn:hover {
+            border-color: rgba(0, 191, 255, 0.8);
+            box-shadow: 0 0 20px rgba(0, 191, 255, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* 返回图标 */
+        .back-icon {
+            width: 30px;
+            height: 30px;
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpath d="M19 12H5"%3E%3C/path%3E%3Cpath d="m12 19-7-7 7-7"%3E%3C/path%3E%3C/svg%3E') center center no-repeat;
+            background-size: contain;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading">正在初始化3D场景...</div>
+    <div id="canvas-container"></div>
+    <div id="info">鼠标拖拽旋转 · 滚轮缩放 · 右键拖拽平移 | H:帮助 R:复位 G:辅助</div>
+
+    <a href="mjgz.html" class="back-home-btn" title="返回苗族建筑数据">
+        <div class="back-icon"></div>
+    </a>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
+
+    <script>
+        let scene, camera, renderer, controls, model;
+
+        function init() {
+            // 1. 场景
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050a1e);
+
+            // 2. 相机
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.set(15, 10, 15);
+
+            // 3. 渲染器
+            renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: true,
+                powerPreference: "high-performance"
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.outputEncoding = THREE.sRGBEncoding;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.physicallyCorrectLights = true;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // 4. 光照系统
+            const ambientLight = new THREE.AmbientLight(0x4080ff, 0.4);
+            scene.add(ambientLight);
+
+            const sunLight = new THREE.DirectionalLight(0x40bfff, 2.5);
+            sunLight.position.set(50, 80, 30);
+            sunLight.castShadow = true;
+            sunLight.shadow.mapSize.width = 4096;
+            sunLight.shadow.mapSize.height = 4096;
+            sunLight.shadow.camera.near = 0.1;
+            sunLight.shadow.camera.far = 500;
+            sunLight.shadow.bias = -0.0001;
+            scene.add(sunLight);
+
+            const skyLight = new THREE.HemisphereLight(0x8a2be2, 0x000033, 0.8);
+            scene.add(skyLight);
+
+            const rimLight = new THREE.DirectionalLight(0x00ffff, 1.0);
+            rimLight.position.set(-20, 10, -20);
+            scene.add(rimLight);
+
+            // 5. 科幻网格地面
+            const gridHelper = new THREE.GridHelper(100, 40, 0x004080, 0x002040);
+            gridHelper.position.y = 0;
+            gridHelper.visible = true;
+            scene.add(gridHelper);
+            window.gridHelper = gridHelper;
+
+            // 6. 发光线条效果
+            createSciFiGrid();
+
+            // 7. 粒子效果
+            createParticles();
+
+            // 8. 星空背景
+            createStarfield();
+
+            // 9. 星云效果
+            createNebula();
+
+            // 10. 动态光效
+            createLightEffects();
+
+            // 11. 控制器
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // 12. 辅助工具
+            const axesHelper = new THREE.AxesHelper(10);
+            axesHelper.visible = false;
+            scene.add(axesHelper);
+            window.axesHelper = axesHelper;
+
+            // 13. 加载模型
+            loadModel();
+        }
+
+        function loadModel() {
+            const loadingElement = document.getElementById('loading');
+            const loader = new THREE.GLTFLoader();
+
+            loader.load(
+                'mjgz.glb',
+                function (gltf) {
+                    model = gltf.scene;
+                    scene.add(model);
+                    console.log('✅ 模型加载成功');
+
+                    model.traverse((child) => {
+                        if (child.isMesh && child.material) {
+                            const materials = Array.isArray(child.material) ? child.material : [child.material];
+
+                            const newMaterials = materials.map((mat) => {
+                                const newMat = new THREE.MeshPhysicalMaterial({
+                                    map: mat.map || null,
+                                    normalMap: mat.normalMap || null,
+                                    roughnessMap: mat.roughnessMap || null,
+                                    metalnessMap: mat.metalnessMap || null,
+                                    aoMap: mat.aoMap || null,
+                                    clearcoatMap: mat.clearcoatMap || null,
+                                    clearcoatNormalMap: mat.clearcoatNormalMap || null,
+                                    clearcoatRoughnessMap: mat.clearcoatRoughnessMap || null,
+                                    transmissionMap: mat.transmissionMap || null,
+                                    thicknessMap: mat.thicknessMap || null,
+                                    sheenColorMap: mat.sheenColorMap || null,
+                                    sheenRoughnessMap: mat.sheenRoughnessMap || null,
+
+                                    color: mat.color ? mat.color.clone() : new THREE.Color(0x2a4d6e),
+                                    emissive: mat.emissive ? mat.emissive.clone() : new THREE.Color(0x004080),
+
+                                    roughness: mat.roughness !== undefined ? mat.roughness : 0.3,
+                                    metalness: mat.metalness !== undefined ? mat.metalness : 0.8,
+
+                                    ior: mat.ior || 1.5,
+                                    reflectivity: mat.reflectivity || 0.8,
+
+                                    clearcoat: mat.clearcoat || 0.6,
+                                    clearcoatRoughness: mat.clearcoatRoughness || 0.1,
+
+                                    transmission: mat.transmission || 0.0,
+                                    thickness: mat.thickness || 0.0,
+                                    attenuationDistance: mat.attenuationDistance || Infinity,
+                                    attenuationColor: mat.attenuationColor ? mat.attenuationColor.clone() : new THREE.Color(0xffffff),
+
+                                    sheen: mat.sheen || 0.0,
+                                    sheenRoughness: mat.sheenRoughness || 1.0,
+                                    sheenColor: mat.sheenColor ? mat.sheenColor.clone() : new THREE.Color(0x000000),
+
+                                    anisotropy: mat.anisotropy || 0.0,
+                                    anisotropyRotation: mat.anisotropyRotation || 0.0,
+
+                                    specularIntensity: mat.specularIntensity !== undefined ? mat.specularIntensity : 1.0,
+                                    specularColor: mat.specularColor ? mat.specularColor.clone() : new THREE.Color(0xffffff),
+
+                                    transparent: mat.transparent || false,
+                                    opacity: mat.opacity !== undefined ? mat.opacity : 1.0,
+                                    alphaTest: mat.alphaTest || 0.0,
+                                    side: mat.side || THREE.FrontSide,
+
+                                    depthWrite: mat.transparent ? false : true,
+                                });
+
+                                if (mat.normalMap && mat.normalScale) {
+                                    newMat.normalScale = mat.normalScale.clone();
+                                }
+
+                                if (mat.clearcoatNormalMap && mat.clearcoatNormalScale) {
+                                    newMat.clearcoatNormalScale = mat.clearcoatNormalScale.clone();
+                                }
+
+                                if (mat.anisotropyMap) {
+                                    newMat.anisotropyMap = mat.anisotropyMap;
+                                }
+
+                                if (mat.aoMap) {
+                                    newMat.aoMapIntensity = mat.aoMapIntensity !== undefined ? mat.aoMapIntensity : 1.0;
+                                }
+
+                                if (mat.emissiveMap || (mat.emissive && mat.emissive.r > 0)) {
+                                    newMat.emissiveIntensity = mat.emissiveIntensity !== undefined ? mat.emissiveIntensity : 2.0;
+                                } else {
+                                    newMat.emissiveIntensity = 0.8;
+                                }
+
+                                if (mat.transmissionMap) {
+                                    newMat.transmission = mat.transmission || 1.0;
+                                }
+
+                                return newMat;
+                            });
+
+                            child.material = newMaterials.length === 1 ? newMaterials[0] : newMaterials;
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+
+                    focusModelOnLoad();
+                    loadingElement.classList.add('hidden');
+                },
+                function (xhr) {
+                    const percentComplete = (xhr.loaded / xhr.total * 100).toFixed(1);
+                    loadingElement.textContent = `加载模型... ${percentComplete}%`;
+                },
+                function (error) {
+                    console.error('❌ 模型加载失败:', error);
+                    loadingElement.innerHTML = `<span style="color:#ff6b6b;">加载失败</span>`;
+                }
+            );
+        }
+
+        function focusModelOnLoad() {
+            if (!model) return;
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+
+            const cameraDistance = Math.max(maxDim * 0.5, 3);
+            camera.position.copy(center);
+            camera.position.x += cameraDistance;
+            camera.position.y += cameraDistance * 0.2;
+            camera.position.z += cameraDistance;
+            camera.lookAt(center);
+
+            if (controls) {
+                controls.target.copy(center);
+                controls.update();
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if (controls) controls.update();
+            updateSciFiEffects();
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        window.addEventListener('resize', onWindowResize);
+
+        function onKeyDown(event) {
+            switch (event.key.toLowerCase()) {
+                case 'h':
+                    document.getElementById('info').style.display =
+                        document.getElementById('info').style.display === 'none' ? 'block' : 'none';
+                    break;
+                case 'r':
+                    if (model) focusModelOnLoad();
+                    break;
+                case 'g':
+                    if (window.axesHelper && window.gridHelper) {
+                        const isVisible = !window.axesHelper.visible;
+                        window.axesHelper.visible = isVisible;
+                        window.gridHelper.visible = isVisible;
+                    }
+                    break;
+            }
+        }
+        document.addEventListener('keydown', onKeyDown);
+
+        function createSciFiGrid() {
+            const gridGroup = new THREE.Group();
+
+            for (let i = -20; i <= 20; i += 2) {
+                const geometry = new THREE.BufferGeometry();
+                const points = [];
+                points.push(new THREE.Vector3(-20, 0.01, i));
+                points.push(new THREE.Vector3(20, 0.01, i));
+                geometry.setFromPoints(points);
+
+                const material = new THREE.LineBasicMaterial({
+                    color: new THREE.Color(0x0080ff).multiplyScalar(0.6 + Math.sin(i * 0.1) * 0.4),
+                    transparent: true,
+                    opacity: 0.8
+                });
+
+                const line = new THREE.Line(geometry, material);
+                gridGroup.add(line);
+            }
+
+            for (let i = -20; i <= 20; i += 2) {
+                const geometry = new THREE.BufferGeometry();
+                const points = [];
+                points.push(new THREE.Vector3(i, 0.01, -20));
+                points.push(new THREE.Vector3(i, 0.01, 20));
+                geometry.setFromPoints(points);
+
+                const material = new THREE.LineBasicMaterial({
+                    color: new THREE.Color(0x0080ff).multiplyScalar(0.6 + Math.cos(i * 0.1) * 0.4),
+                    transparent: true,
+                    opacity: 0.8
+                });
+
+                const line = new THREE.Line(geometry, material);
+                gridGroup.add(line);
+            }
+
+            scene.add(gridGroup);
+        }
+
+        function createParticles() {
+            const particleGeometry = new THREE.BufferGeometry();
+            const particleCount = 1000;
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount; i++) {
+                const i3 = i * 3;
+
+                positions[i3] = (Math.random() - 0.5) * 100;
+                positions[i3 + 1] = Math.random() * 50;
+                positions[i3 + 2] = (Math.random() - 0.5) * 100;
+
+                colors[i3] = 0.0;
+                colors[i3 + 1] = 0.4 + Math.random() * 0.6;
+                colors[i3 + 2] = 0.8 + Math.random() * 0.2;
+            }
+
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particleGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const particleMaterial = new THREE.PointsMaterial({
+                size: 0.2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particles = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particles);
+        }
+
+        function createStarfield() {
+            const starGeometry = new THREE.BufferGeometry();
+            const starCount = 5000;
+            const positions = new Float32Array(starCount * 3);
+            const colors = new Float32Array(starCount * 3);
+
+            for (let i = 0; i < starCount; i++) {
+                const i3 = i * 3;
+
+                positions[i3] = (Math.random() - 0.5) * 2000;
+                positions[i3 + 1] = (Math.random() - 0.5) * 2000;
+                positions[i3 + 2] = (Math.random() - 0.5) * 2000;
+
+                const brightness = Math.random();
+                colors[i3] = brightness;
+                colors[i3 + 1] = brightness * 0.8;
+                colors[i3 + 2] = brightness;
+            }
+
+            starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            starGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const starMaterial = new THREE.PointsMaterial({
+                size: 2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending
+            });
+
+            const starfield = new THREE.Points(starGeometry, starMaterial);
+            scene.add(starfield);
+        }
+
+        function createNebula() {
+            const geometry = new THREE.SphereGeometry(500, 32, 32);
+            const material = new THREE.MeshBasicMaterial({
+                color: 0x1a2b4c,
+                transparent: true,
+                opacity: 0.1,
+                side: THREE.BackSide
+            });
+
+            const nebula = new THREE.Mesh(geometry, material);
+            scene.add(nebula);
+        }
+
+        function createLightEffects() {
+            const lightGeometry = new THREE.BufferGeometry();
+            const lightCount = 50;
+            const positions = new Float32Array(lightCount * 3);
+            const colors = new Float32Array(lightCount * 3);
+
+            for (let i = 0; i < lightCount; i++) {
+                const i3 = i * 3;
+
+                positions[i3] = (Math.random() - 0.5) * 100;
+                positions[i3 + 1] = Math.random() * 50;
+                positions[i3 + 2] = (Math.random() - 0.5) * 100;
+
+                colors[i3] = 0.0;
+                colors[i3 + 1] = 0.8 + Math.random() * 0.2;
+                colors[i3 + 2] = 1.0;
+            }
+
+            lightGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            lightGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const lightMaterial = new THREE.PointsMaterial({
+                size: 3,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+
+            const lightEffects = new THREE.Points(lightGeometry, lightMaterial);
+            scene.add(lightEffects);
+        }
+
+        function updateSciFiEffects() {
+            const time = Date.now() * 0.001;
+
+            scene.traverse((child) => {
+                if (child.isLine) {
+                    const material = child.material;
+                    if (material) {
+                        const intensity = 0.6 + Math.sin(time + child.position.x * 0.1) * 0.4;
+                        material.color.set(new THREE.Color(0x0080ff).multiplyScalar(intensity));
+                    }
+                }
+            });
+
+            scene.traverse((child) => {
+                if (child.isPoints) {
+                    child.rotation.y += 0.001;
+                }
+            });
+
+            scene.traverse((child) => {
+                if (child.isPoints && child.geometry.attributes.position.count > 1000) {
+                    child.rotation.y += 0.0001;
+                }
+            });
+        }
+
+        init();
+        animate();
+    </script>
+</body>
+
+</html>

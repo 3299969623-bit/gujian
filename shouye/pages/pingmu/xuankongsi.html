@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>悬空寺 - 千年古建奇迹</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #faf9f7;
+            --bg-warm: #f3efe9;
+            --bg-dark: #1c1917;
+            --accent-amber: #d97706;
+            --accent-copper: #b45309;
+            --accent-terracotta: #c2410c;
+            --accent-slate: #57534e;
+            --accent-stone: #a8a29e;
+            --accent-rose: #be123c;
+            --text-dark: #1c1917;
+            --text-body: #44403c;
+            --text-light: #78716c;
+            --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.06);
+            --shadow-medium: 0 12px 48px rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-dark);
+            line-height: 1.7;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(250, 249, 247, 0.9);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-logo {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--accent-amber), var(--accent-copper));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-link {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: var(--accent-amber);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 120px 5% 80px;
+            background: var(--bg-dark);
+            overflow: hidden;
+        }
+
+        .hero-bg-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 80%, rgba(217, 119, 6, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(180, 83, 9, 0.1) 0%, transparent 50%);
+        }
+
+        .hero-grid-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 80px;
+            align-items: center;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-text {
+            color: white;
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent-amber);
+            margin-bottom: 24px;
+        }
+
+        .hero-eyebrow::before {
+            content: '';
+            width: 30px;
+            height: 2px;
+            background: var(--accent-amber);
+        }
+
+        .hero-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 5.5rem;
+            font-weight: 900;
+            line-height: 1.05;
+            margin-bottom: 32px;
+            letter-spacing: -2px;
+        }
+
+        .hero-title-main {
+            display: block;
+            color: white;
+        }
+
+        .hero-title-sub {
+            display: block;
+            background: linear-gradient(135deg, var(--accent-amber), var(--accent-terracotta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 480px;
+            margin-bottom: 40px;
+            line-height: 1.8;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 48px;
+        }
+
+        .hero-stat {
+            position: relative;
+        }
+
+        .hero-stat:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -24px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .hero-stat-value {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 3.2rem;
+            font-weight: 700;
+            color: var(--accent-amber);
+            line-height: 1;
+        }
+
+        .hero-stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 8px;
+        }
+
+        .hero-visual {
+            position: relative;
+        }
+
+        .hero-chart-container {
+            height: 420px;
+        }
+
+        /* Bento Section */
+        .bento-section {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 80px 5%;
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 24px;
+        }
+
+        /* Base Card */
+        .bento-card {
+            background: white;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .bento-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* Card Sizes */
+        .span-7 {
+            grid-column: span 7;
+        }
+
+        .span-5 {
+            grid-column: span 5;
+        }
+
+        .span-6 {
+            grid-column: span 6;
+        }
+
+        .span-4 {
+            grid-column: span 4;
+        }
+
+        .span-8 {
+            grid-column: span 8;
+        }
+
+        .span-3 {
+            grid-column: span 3;
+        }
+
+        .span-12 {
+            grid-column: span 12;
+        }
+
+        .row-tall {
+            grid-row: span 2;
+        }
+
+        /* Featured Dark Card */
+        .card-dark {
+            background: var(--bg-dark);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-dark::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 80%;
+            height: 150%;
+            background: radial-gradient(ellipse, rgba(217, 119, 6, 0.15) 0%, transparent 60%);
+        }
+
+        /* Card Header */
+        .card-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 6px 14px;
+            background: rgba(217, 119, 6, 0.1);
+            color: var(--accent-amber);
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card-tag-dark {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--accent-amber);
+        }
+
+        .card-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .card-title-dark {
+            color: white;
+        }
+
+        .card-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 24px;
+        }
+
+        .card-subtitle-dark {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Chart Containers */
+        .chart-area {
+            height: 300px;
+        }
+
+        .chart-area-sm {
+            height: 220px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .stat-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--bg-warm);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .stat-name {
+            font-size: 0.95rem;
+            color: var(--text-body);
+        }
+
+        .stat-number {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--accent-copper);
+        }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .feature-box {
+            background: var(--bg-warm);
+            border-radius: 16px;
+            padding: 24px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .feature-box:hover {
+            background: var(--accent-amber);
+            color: white;
+        }
+
+        .feature-box:hover .feature-char,
+        .feature-box:hover .feature-name,
+        .feature-box:hover .feature-desc {
+            color: white;
+        }
+
+        .feature-char {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--accent-amber);
+            margin-bottom: 8px;
+            transition: color 0.3s;
+        }
+
+        .feature-name {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+            transition: color 0.3s;
+        }
+
+        .feature-desc {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            transition: color 0.3s;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 28px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--accent-amber), var(--accent-terracotta), transparent);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 28px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 4px;
+            width: 12px;
+            height: 12px;
+            background: var(--accent-amber);
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 2px var(--accent-amber);
+        }
+
+        .timeline-year {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-copper);
+            margin-bottom: 4px;
+        }
+
+        .timeline-text {
+            font-size: 0.9rem;
+            color: var(--text-body);
+            line-height: 1.6;
+        }
+
+        /* Trinity Cards */
+        .trinity-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .trinity-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px;
+            background: var(--bg-warm);
+            border-radius: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .trinity-item:hover {
+            transform: translateX(8px);
+            background: rgba(217, 119, 6, 0.1);
+        }
+
+        .trinity-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .trinity-icon.buddhism {
+            background: linear-gradient(135deg, var(--accent-rose), #f43f5e);
+        }
+
+        .trinity-icon.taoism {
+            background: linear-gradient(135deg, var(--accent-amber), var(--accent-copper));
+        }
+
+        .trinity-icon.confucian {
+            background: linear-gradient(135deg, var(--accent-slate), #44403c);
+        }
+
+        .trinity-info h4 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .trinity-info p {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        /* Ranking */
+        .ranking-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ranking-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .ranking-row:last-child {
+            border-bottom: none;
+        }
+
+        .ranking-num {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--accent-amber);
+            width: 40px;
+        }
+
+        .ranking-content {
+            flex: 1;
+        }
+
+        .ranking-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .ranking-meta {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        .ranking-value {
+            text-align: right;
+        }
+
+        .ranking-highlight {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-copper);
+        }
+
+        /* Quote Section */
+        .quote-section {
+            background: var(--bg-warm);
+            padding: 100px 5%;
+            text-align: center;
+        }
+
+        .quote-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .quote-mark {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 8rem;
+            color: var(--accent-amber);
+            opacity: 0.15;
+            line-height: 0.8;
+            margin-bottom: -30px;
+        }
+
+        .quote-text {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.5;
+            margin-bottom: 24px;
+        }
+
+        .quote-author {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text-dark);
+            color: white;
+            padding: 60px 5%;
+        }
+
+        .footer-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-logo {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .footer-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 60px;
+            }
+
+            .hero-title {
+                font-size: 4rem;
+            }
+
+            .span-7,
+            .span-5,
+            .span-6,
+            .span-4,
+            .span-8,
+            .span-3 {
+                grid-column: span 12;
+            }
+
+            .row-tall {
+                grid-row: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero-title {
+                font-size: 2.8rem;
+            }
+
+            .hero-stats {
+                flex-wrap: wrap;
+                gap: 30px;
+            }
+
+            .hero-stat::after {
+                display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+
+        /* 返回按钮样式 */
+        .back-home-btn {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(20, 26, 44, 0.45);
+            border: 1px solid rgba(0, 246, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 12px rgba(0, 246, 255, 0.1);
+            z-index: 999;
+        }
+
+        .back-home-btn:hover {
+            border-color: #00f6ff;
+            box-shadow: 0 0 20px rgba(0, 246, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* 返回图标 */
+        .back-icon {
+            width: 30px;
+            height: 30px;
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpath d="M19 12H5"%3E%3C/path%3E%3Cpath d="m12 19-7-7 7-7"%3E%3C/path%3E%3C/svg%3E') center center no-repeat;
+            background-size: contain;
+            opacity: 0.8;
+        }
+
+        /* 3D视图按钮样式 */
+        .view3d-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(20, 26, 44, 0.45);
+            border: 1px solid rgba(0, 246, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 12px rgba(0, 246, 255, 0.1);
+            z-index: 999;
+        }
+
+        .view3d-btn:hover {
+            border-color: #00f6ff;
+            box-shadow: 0 0 20px rgba(0, 246, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* 3D视图图标 */
+        .view3d-icon {
+            width: 30px;
+            height: 30px;
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpath d="M12 2L2 7l10 5 10-5-10-5z"%3E%3C/path%3E%3Cpath d="M2 17l10 5 10-5"%3E%3C/path%3E%3Cpath d="M2 12l10 5 10-5"%3E%3C/path%3E%3C/svg%3E') center center no-repeat;
+            background-size: contain;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-logo">
+            <div class="nav-logo-icon">悬</div>
+            <span>悬空寺</span>
+        </div>
+        <div class="nav-links">
+            <a href="#" class="nav-link">概览</a>
+            <a href="#" class="nav-link">历史</a>
+            <a href="#" class="nav-link">建筑</a>
+            <a href="#" class="nav-link">文化</a>
+            <a href="#" class="nav-link">游览</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg-pattern"></div>
+        <div class="hero-grid-lines"></div>
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-eyebrow">北岳恒山 · 世界遗产</div>
+                <h1 class="hero-title">
+                    <span class="hero-title-main">悬空寺</span>
+                    <span class="hero-title-sub">千年古建奇迹</span>
+                </h1>
+                <p class="hero-desc">
+                    建于1500多年前的北魏太和年间，悬挂于60米悬崖之上，
+                    是中国现存最古老的高空木构建筑群，集佛、道、儒三教合一。
+                </p>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">1500+</div>
+                        <div class="hero-stat-label">历史年限（年）</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">50m</div>
+                        <div class="hero-stat-label">悬空高度</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">40</div>
+                        <div class="hero-stat-label">殿阁房间</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-chart-container" id="heroChart"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bento Grid Section -->
+    <section class="bento-section">
+        <div class="bento-grid">
+            <!-- Main Chart - Large -->
+            <div class="bento-card card-dark span-7 row-tall">
+                <div class="card-tag card-tag-dark">数据分析</div>
+                <div class="card-title card-title-dark">年度游客量趋势</div>
+                <div class="card-subtitle card-subtitle-dark">2019-2025年数据（万人次）</div>
+                <div class="chart-area" id="mainChart"></div>
+            </div>
+
+            <!-- Stats Side -->
+            <div class="bento-card span-5 row-tall">
+                <div class="card-tag">核心数据</div>
+                <div class="card-title">建筑数据一览</div>
+                <div class="card-subtitle">悬空寺建筑规模统计</div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-left">
+                            <div class="stat-icon">📐</div>
+                            <span class="stat-name">占地面积</span>
+                        </div>
+                        <span class="stat-number">152.5m²</span>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-left">
+                            <div class="stat-icon">🏗</div>
+                            <span class="stat-name">建筑面积</span>
+                        </div>
+                        <span class="stat-number">600+m²</span>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-left">
+                            <div class="stat-icon">🚪</div>
+                            <span class="stat-name">殿阁数量</span>
+                        </div>
+                        <span class="stat-number">40间</span>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-left">
+                            <div class="stat-icon">🗿</div>
+                            <span class="stat-name">造像数量</span>
+                        </div>
+                        <span class="stat-number">80尊</span>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-left">
+                            <div class="stat-icon">📊</div>
+                            <span class="stat-name">台阶数量</span>
+                        </div>
+                        <span class="stat-number">84级</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="bento-card span-5">
+                <div class="card-tag">建筑特色</div>
+                <div class="card-title">四大特点</div>
+                <div class="card-subtitle">悬空寺建筑风格精髓</div>
+                <div class="features-grid">
+                    <div class="feature-box">
+                        <div class="feature-char">奇</div>
+                        <div class="feature-name">构思奇妙</div>
+                        <div class="feature-desc">巧借岩石暗托</div>
+                    </div>
+                    <div class="feature-box">
+                        <div class="feature-char">悬</div>
+                        <div class="feature-name">凌空欲飞</div>
+                        <div class="feature-desc">悬挂于悬崖峭壁</div>
+                    </div>
+                    <div class="feature-box">
+                        <div class="feature-char">巧</div>
+                        <div class="feature-name">工艺精巧</div>
+                        <div class="feature-desc">榫接结构嵌入</div>
+                    </div>
+                    <div class="feature-box">
+                        <div class="feature-char">险</div>
+                        <div class="feature-name">惊险异常</div>
+                        <div class="feature-desc">半天高空中吊</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pie Chart -->
+            <div class="bento-card span-4">
+                <div class="card-tag">殿阁分布</div>
+                <div class="card-title">三教堂阁</div>
+                <div class="card-subtitle">各宗教建筑占比</div>
+                <div class="chart-area-sm" id="pieChart"></div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="bento-card span-3">
+                <div class="card-tag">历史沿革</div>
+                <div class="card-title">重要节点</div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-year">491年</div>
+                        <div class="timeline-text">北魏太和十五年<br>悬空寺始建</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">明清</div>
+                        <div class="timeline-text">现存建筑大多为<br>明清两代遗构</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">1982</div>
+                        <div class="timeline-text">列入第二批<br>全国重点文保</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2010</div>
+                        <div class="timeline-text">入选《时代》周刊<br>世界十大悬险建筑</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trinity Culture -->
+            <div class="bento-card span-4">
+                <div class="card-tag">宗教融合</div>
+                <div class="card-title">三教合一</div>
+                <div class="card-subtitle">佛道儒共居一室</div>
+                <div class="trinity-grid">
+                    <div class="trinity-item">
+                        <div class="trinity-icon buddhism">佛</div>
+                        <div class="trinity-info">
+                            <h4>佛教 · 11座佛殿</h4>
+                            <p>雷音殿、三佛殿、菩萨殿等</p>
+                        </div>
+                    </div>
+                    <div class="trinity-item">
+                        <div class="trinity-icon taoism">道</div>
+                        <div class="trinity-info">
+                            <h4>道教 · 5座道观</h4>
+                            <p>太乙殿、鼓楼等道教建筑</p>
+                        </div>
+                    </div>
+                    <div class="trinity-item">
+                        <div class="trinity-icon confucian">儒</div>
+                        <div class="trinity-info">
+                            <h4>儒教 · 三教殿</h4>
+                            <p>释迦、老子、孔子共居一室</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monthly Bar -->
+            <div class="bento-card span-8">
+                <div class="card-tag">时间分布</div>
+                <div class="card-title">月度游客量</div>
+                <div class="card-subtitle">2024年各月接待游客分布</div>
+                <div class="chart-area" id="monthlyChart"></div>
+            </div>
+
+            <!-- Rankings -->
+            <div class="bento-card span-4">
+                <div class="card-tag">荣誉榜单</div>
+                <div class="card-title">殊荣与地位</div>
+                <div class="ranking-list">
+                    <div class="ranking-row">
+                        <div class="ranking-num">01</div>
+                        <div class="ranking-content">
+                            <div class="ranking-name">全国重点文物保护单位</div>
+                            <div class="ranking-meta">1982年 国务院批准</div>
+                        </div>
+                    </div>
+                    <div class="ranking-row">
+                        <div class="ranking-num">02</div>
+                        <div class="ranking-content">
+                            <div class="ranking-name">世界十大最奇险建筑</div>
+                            <div class="ranking-meta">2010年 《时代》周刊</div>
+                        </div>
+                    </div>
+                    <div class="ranking-row">
+                        <div class="ranking-num">03</div>
+                        <div class="ranking-content">
+                            <div class="ranking-name">恒山十八景第一胜景</div>
+                            <div class="ranking-meta">北岳恒山最负盛名</div>
+                        </div>
+                    </div>
+                    <div class="ranking-row">
+                        <div class="ranking-num">04</div>
+                        <div class="ranking-content">
+                            <div class="ranking-name">国家AAAA级旅游景区</div>
+                            <div class="ranking-meta">AAAA级旅游景区认证</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tourism Info -->
+            <div class="bento-card span-12">
+                <div class="card-tag">游览指南</div>
+                <div class="card-title">实用旅游信息</div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-top: 20px;">
+                    <div style="padding: 24px; background: var(--bg-warm); border-radius: 16px; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">🎫</div>
+                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">门票价格</div>
+                        <div
+                            style="font-family: 'Noto Serif SC', serif; font-size: 1.3rem; color: var(--accent-copper);">
+                            15元+100元</div>
+                        <div style="font-size: 0.8rem; color: var(--text-light);">门票+登临费</div>
+                    </div>
+                    <div style="padding: 24px; background: var(--bg-warm); border-radius: 16px; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">⏰</div>
+                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">开放时间</div>
+                        <div
+                            style="font-family: 'Noto Serif SC', serif; font-size: 1.3rem; color: var(--accent-copper);">
+                            08:00-18:00</div>
+                        <div style="font-size: 0.8rem; color: var(--text-light);">夏季08:00-18:00</div>
+                    </div>
+                    <div style="padding: 24px; background: var(--bg-warm); border-radius: 16px; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">👥</div>
+                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">日限流量</div>
+                        <div
+                            style="font-family: 'Noto Serif SC', serif; font-size: 1.3rem; color: var(--accent-copper);">
+                            3260人</div>
+                        <div style="font-size: 0.8rem; color: var(--text-light);">为保护文物限售</div>
+                    </div>
+                    <div style="padding: 24px; background: var(--bg-warm); border-radius: 16px; text-align: center;">
+                        <div style="font-size: 2rem; margin-bottom: 8px;">⏱</div>
+                        <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px;">建议游览</div>
+                        <div
+                            style="font-family: 'Noto Serif SC', serif; font-size: 1.3rem; color: var(--accent-copper);">
+                            2-3小时</div>
+                        <div style="font-size: 0.8rem; color: var(--text-light);">最佳季节：春夏秋</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quote Section -->
+    <section class="quote-section">
+        <div class="quote-container">
+            <div class="quote-mark">"</div>
+            <p class="quote-text">壮 观</p>
+            <p class="quote-author">—— 诗仙李白游览悬空寺时亲笔题写</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">悬空寺</div>
+            <div class="footer-text">数据来源：恒山风景名胜区管理中心、百度百科等公开资料 · 2026年4月</div>
+        </div>
+    </footer>
+
+    <script>
+        // 配色
+        const colors = {
+            amber: '#d97706',
+            copper: '#b45309',
+            terracotta: '#c2410c',
+            rose: '#be123c',
+            slate: '#57534e',
+            stone: '#a8a29e'
+        };
+
+        // 1. Hero Chart - 雷达图
+        const heroChart = echarts.init(document.getElementById('heroChart'));
+        heroChart.setOption({
+            radar: {
+                indicator: [
+                    { name: '建筑难度', max: 100 },
+                    { name: '历史价值', max: 100 },
+                    { name: '艺术价值', max: 100 },
+                    { name: '保护难度', max: 100 },
+                    { name: '游客吸引力', max: 100 }
+                ],
+                shape: 'polygon',
+                splitNumber: 4,
+                axisName: { color: 'rgba(255,255,255,0.6)', fontSize: 11 },
+                splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                splitArea: { areaStyle: { color: ['rgba(217,119,6,0.05)', 'rgba(217,119,6,0.1)'] } },
+                axisLine: { lineStyle: { color: 'rgba(255,255,255,0.15)' } }
+            },
+            series: [{
+                type: 'radar',
+                data: [{
+                    value: [95, 98, 92, 88, 96],
+                    name: '悬空寺特征',
+                    areaStyle: { color: 'rgba(217, 119, 6, 0.3)' },
+                    lineStyle: { color: colors.amber, width: 2 },
+                    itemStyle: { color: colors.amber },
+                    symbol: 'circle',
+                    symbolSize: 8
+                }]
+            }],
+            tooltip: { trigger: 'item' }
+        });
+
+        // 2. Main Chart - 折线面积图
+        const mainChart = echarts.init(document.getElementById('mainChart'));
+        mainChart.setOption({
+            grid: { top: 20, right: 30, bottom: 30, left: 50 },
+            xAxis: {
+                type: 'category',
+                data: ['2019', '2020', '2021', '2022', '2023', '2024', '2025'],
+                axisLine: { lineStyle: { color: 'rgba(255,255,255,0.2)' } },
+                axisLabel: { color: 'rgba(255,255,255,0.6)' }
+            },
+            yAxis: {
+                type: 'value',
+                name: '万人次',
+                nameTextStyle: { color: 'rgba(255,255,255,0.4)' },
+                axisLine: { show: false },
+                splitLine: { lineStyle: { color: 'rgba(255,255,255,0.08)' } },
+                axisLabel: { color: 'rgba(255,255,255,0.5)' }
+            },
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(28, 25, 23, 0.95)',
+                borderColor: colors.amber,
+                textStyle: { color: 'white' }
+            },
+            series: [{
+                type: 'line',
+                data: [42, 18, 28, 45, 58, 72, 85],
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 10,
+                lineStyle: { color: colors.amber, width: 3 },
+                itemStyle: { color: colors.amber, borderColor: 'white', borderWidth: 2 },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(217, 119, 6, 0.4)' },
+                        { offset: 1, color: 'rgba(217, 119, 6, 0.02)' }
+                    ])
+                }
+            }]
+        });
+
+        // 3. Pie Chart
+        const pieChart = echarts.init(document.getElementById('pieChart'));
+        pieChart.setOption({
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                borderColor: colors.amber,
+                textStyle: { color: '#1c1917' }
+            },
+            series: [{
+                type: 'pie',
+                radius: ['45%', '75%'],
+                center: ['50%', '50%'],
+                avoidLabelOverlap: false,
+                itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 3 },
+                label: { show: false },
+                data: [
+                    { value: 11, name: '佛教殿堂', itemStyle: { color: colors.rose } },
+                    { value: 5, name: '道教宫观', itemStyle: { color: colors.amber } },
+                    { value: 1, name: '三教殿', itemStyle: { color: colors.slate } },
+                    { value: 23, name: '其他建筑', itemStyle: { color: colors.stone } }
+                ]
+            }]
+        });
+
+        // 4. Monthly Chart
+        const monthlyChart = echarts.init(document.getElementById('monthlyChart'));
+        monthlyChart.setOption({
+            grid: { top: 20, right: 20, bottom: 30, left: 50 },
+            xAxis: {
+                type: 'category',
+                data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                axisLine: { lineStyle: { color: 'rgba(0,0,0,0.1)' } },
+                axisLabel: { color: '#78716c', fontSize: 11, rotate: 45 }
+            },
+            yAxis: {
+                type: 'value',
+                axisLine: { show: false },
+                splitLine: { lineStyle: { color: 'rgba(0,0,0,0.06)' } },
+                axisLabel: { color: '#78716c' }
+            },
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(28, 25, 23, 0.95)',
+                borderColor: colors.amber,
+                textStyle: { color: 'white' }
+            },
+            series: [{
+                type: 'bar',
+                data: [3.5, 5.2, 4.8, 6.5, 7.8, 8.5, 9.2, 9.5, 8.2, 7.5, 4.8, 3.2].map((v, i) => ({
+                    value: v,
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: i === 7 ? colors.amber : colors.copper },
+                            { offset: 1, color: i === 7 ? colors.terracotta : colors.amber }
+                        ]),
+                        borderRadius: [4, 4, 0, 0]
+                    }
+                })),
+                barWidth: '55%'
+            }]
+        });
+
+        // 响应式
+        window.addEventListener('resize', function () {
+            heroChart.resize();
+            mainChart.resize();
+            pieChart.resize();
+            monthlyChart.resize();
+        });
+    </script>
+    <!-- 返回按钮 -->
+    <a href="../arch-list.html" class="back-home-btn" title="返回云游古建">
+        <div class="back-icon"></div>
+    </a>
+    <!-- 3D视图按钮 -->
+    <a href="xks3D.html" class="view3d-btn" title="3D视图">
+        <div class="view3d-icon"></div>
+    </a>
+</body>
+
+</html>

@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>贵州古寨数据可视化</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-cream: #faf8f3;
+            --bg-warm: #f5efe6;
+            --accent-rust: #c65d3b;
+            --accent-forest: #2d5a45;
+            --accent-gold: #c9a227;
+            --accent-slate: #475569;
+            --accent-sage: #7c9885;
+            --accent-terracotta: #d4785c;
+            --text-dark: #1a1a1a;
+            --text-body: #4a4a4a;
+            --text-light: #7a7a7a;
+            --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.06);
+            --shadow-medium: 0 8px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--bg-cream);
+            color: var(--text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Hero Section - Full Width */
+        .hero {
+            min-height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 5%;
+            background: linear-gradient(160deg, var(--bg-cream) 0%, var(--bg-warm) 100%);
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 80%;
+            height: 150%;
+            background: radial-gradient(ellipse, rgba(45, 90, 69, 0.08) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 80px;
+            align-items: center;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .hero-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-eyebrow {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--accent-rust);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .hero-eyebrow::before {
+            content: '';
+            width: 40px;
+            height: 2px;
+            background: var(--accent-rust);
+        }
+
+        .hero-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 5rem;
+            font-weight: 900;
+            line-height: 1.1;
+            color: var(--text-dark);
+            margin-bottom: 30px;
+            letter-spacing: -2px;
+        }
+
+        .hero-title span {
+            display: block;
+            background: linear-gradient(135deg, var(--accent-forest), var(--accent-sage));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-desc {
+            font-size: 1.15rem;
+            color: var(--text-body);
+            max-width: 500px;
+            margin-bottom: 40px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 50px;
+        }
+
+        .hero-stat {
+            position: relative;
+        }
+
+        .hero-stat::after {
+            content: '';
+            position: absolute;
+            right: -25px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 1px;
+            height: 60%;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-stat:last-child::after {
+            display: none;
+        }
+
+        .hero-stat-value {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--accent-forest);
+            line-height: 1;
+        }
+
+        .hero-stat-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-top: 8px;
+        }
+
+        /* Bento Grid */
+        .bento-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 5% 100px;
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            grid-template-rows: auto;
+            gap: 24px;
+        }
+
+        /* Bento Items */
+        .bento-item {
+            background: white;
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: var(--shadow-soft);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bento-item:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* Large Feature - spans 7 columns */
+        .bento-featured {
+            grid-column: span 7;
+            background: linear-gradient(135deg, var(--accent-forest), #1e3d2f);
+            color: white;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .bento-featured .chart-area {
+            position: absolute;
+            top: 40px;
+            left: 32px;
+            right: 32px;
+            bottom: 120px;
+        }
+
+        .bento-featured .featured-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            opacity: 0.7;
+            margin-bottom: 12px;
+        }
+
+        .bento-featured .featured-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .bento-featured .featured-meta {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Side Cards */
+        .bento-side {
+            grid-column: span 5;
+        }
+
+        .bento-tall {
+            grid-row: span 2;
+        }
+
+        .bento-wide {
+            grid-column: span 8;
+        }
+
+        .bento-small {
+            grid-column: span 4;
+        }
+
+        /* Card Headers */
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .card-tag {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 6px 12px;
+            background: rgba(45, 90, 69, 0.1);
+            color: var(--accent-forest);
+            border-radius: 20px;
+        }
+
+        .card-title {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+
+        .card-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* Stat Cards */
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-warm);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-name {
+            font-size: 0.95rem;
+            color: var(--text-body);
+        }
+
+        .stat-value {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-forest);
+        }
+
+        /* Ranking Cards */
+        .ranking-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .ranking-item:last-child {
+            border-bottom: none;
+        }
+
+        .ranking-number {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--accent-gold);
+            width: 50px;
+            text-align: center;
+        }
+
+        .ranking-content {
+            flex: 1;
+        }
+
+        .ranking-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .ranking-location {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+
+        .ranking-value {
+            text-align: right;
+        }
+
+        .ranking-metric {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-forest);
+        }
+
+        .ranking-unit {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        /* Chart Containers */
+        .chart-wrapper {
+            height: 280px;
+            margin-top: 16px;
+        }
+
+        .chart-wrapper-sm {
+            height: 200px;
+        }
+
+        /* Culture Cards */
+        .culture-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .culture-card {
+            background: var(--bg-warm);
+            border-radius: 16px;
+            padding: 24px 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .culture-card:hover {
+            background: var(--accent-forest);
+            color: white;
+        }
+
+        .culture-card:hover .culture-emoji,
+        .culture-card:hover .culture-title,
+        .culture-card:hover .culture-desc {
+            color: white;
+        }
+
+        .culture-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            transition: color 0.3s ease;
+        }
+
+        .culture-title {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+            transition: color 0.3s ease;
+        }
+
+        .culture-desc {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            transition: color 0.3s ease;
+        }
+
+        /* Timeline */
+        .timeline-list {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline-list::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--accent-forest), var(--accent-gold));
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 28px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 4px;
+            width: 14px;
+            height: 14px;
+            background: var(--accent-forest);
+            border-radius: 50%;
+            border: 3px solid var(--bg-cream);
+        }
+
+        .timeline-year {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-forest);
+            margin-bottom: 4px;
+        }
+
+        .timeline-text {
+            font-size: 0.9rem;
+            color: var(--text-body);
+            line-height: 1.5;
+        }
+
+        /* Quote Section */
+        .quote-section {
+            background: var(--bg-warm);
+            padding: 80px 5%;
+            text-align: center;
+        }
+
+        .quote-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .quote-mark {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 6rem;
+            color: var(--accent-forest);
+            opacity: 0.2;
+            line-height: 1;
+        }
+
+        .quote-text {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.5;
+            margin: -30px 0 24px;
+        }
+
+        .quote-author {
+            font-size: 1rem;
+            color: var(--text-light);
+        }
+
+        /* Progress Bars */
+        .progress-item {
+            margin-bottom: 20px;
+        }
+
+        .progress-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .progress-label {
+            font-size: 0.95rem;
+            color: var(--text-body);
+        }
+
+        .progress-value {
+            font-weight: 600;
+            color: var(--accent-forest);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-warm);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-forest), var(--accent-sage));
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--text-dark);
+            color: white;
+            padding: 60px 5%;
+        }
+
+        .footer-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-logo {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .footer-text {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 50px;
+            }
+
+            .hero-title {
+                font-size: 3.5rem;
+            }
+
+            .bento-featured {
+                grid-column: span 12;
+            }
+
+            .bento-side {
+                grid-column: span 12;
+            }
+
+            .bento-wide {
+                grid-column: span 12;
+            }
+
+            .bento-small {
+                grid-column: span 12;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .hero-stat::after {
+                display: none;
+            }
+
+            .culture-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+        }
+
+        /* 返回按钮样式 */
+        .back-home-btn {
+            position: fixed;
+            left: 20px;
+            bottom: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(20, 26, 44, 0.45);
+            border: 1px solid rgba(0, 246, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 12px rgba(0, 246, 255, 0.1);
+            z-index: 999;
+        }
+
+        .back-home-btn:hover {
+            border-color: #00f6ff;
+            box-shadow: 0 0 20px rgba(0, 246, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        /* 返回图标 */
+        .back-icon {
+            width: 30px;
+            height: 30px;
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpath d="M19 12H5"%3E%3C/path%3E%3Cpath d="m12 19-7-7 7-7"%3E%3C/path%3E%3C/svg%3E') center center no-repeat;
+            background-size: contain;
+            opacity: 0.8;
+        }
+
+        /* 3D视图按钮 */
+        .view3d-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(45, 90, 69, 0.45);
+            border: 1px solid rgba(201, 162, 39, 0.3);
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 12px rgba(201, 162, 39, 0.2);
+            z-index: 999;
+        }
+
+        .view3d-btn:hover {
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 20px rgba(201, 162, 39, 0.6);
+            transform: translateY(-2px);
+        }
+
+        /* 3D视图图标 */
+        .view3d-icon {
+            width: 30px;
+            height: 30px;
+            background: url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Cpath d="M12 2L2 7l10 5 10-5-10-5z"%3E%3C/path%3E%3Cpath d="M2 17l10 5 10-5"%3E%3C/path%3E%3Cpath d="M2 12l10 5 10-5"%3E%3C/path%3E%3C/svg%3E') center center no-repeat;
+            background-size: contain;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <div class="hero-eyebrow">多彩贵州 · 数据可视化</div>
+                <h1 class="hero-title">
+                    贵州古寨
+                    <span>数字瑰宝</span>
+                </h1>
+                <p class="hero-desc">
+                    探索贵州757个中国传统村落的文化密码，感受少数民族村寨的独特魅力。
+                    这里有苗寨的吊脚楼、侗寨的鼓楼、还有世代相传的非遗技艺。
+                </p>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">757</div>
+                        <div class="hero-stat-label">中国传统村落</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">17</div>
+                        <div class="hero-stat-label">世居少数民族</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">312</div>
+                        <div class="hero-stat-label">国家级特色村寨</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-chart">
+                <div id="heroChart" style="height: 400px;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bento Grid Section -->
+    <section class="bento-container">
+        <div class="bento-grid">
+            <!-- Featured Chart - Large -->
+            <div class="bento-item bento-featured">
+                <div class="chart-area" id="mainChart"></div>
+                <div class="featured-label">年度数据分析</div>
+                <div class="featured-title">游客量增长趋势</div>
+                <div class="featured-meta">2018-2025年数据 · 单位：万人次</div>
+            </div>
+
+            <!-- Ranking Side -->
+            <div class="bento-item bento-side bento-tall">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">热门村寨排行</div>
+                        <div class="card-subtitle">按年度游客量排名</div>
+                    </div>
+                    <span class="card-tag">TOP 4</span>
+                </div>
+                <div class="ranking-item">
+                    <div class="ranking-number">01</div>
+                    <div class="ranking-content">
+                        <div class="ranking-name">西江千户苗寨</div>
+                        <div class="ranking-location">黔东南州 · 雷山县</div>
+                    </div>
+                    <div class="ranking-value">
+                        <div class="ranking-metric">464</div>
+                        <div class="ranking-unit">万人次</div>
+                    </div>
+                </div>
+                <div class="ranking-item">
+                    <div class="ranking-number">02</div>
+                    <div class="ranking-content">
+                        <div class="ranking-name">肇兴侗寨</div>
+                        <div class="ranking-location">黔东南州 · 黎平县</div>
+                    </div>
+                    <div class="ranking-value">
+                        <div class="ranking-metric">100</div>
+                        <div class="ranking-unit">万人次</div>
+                    </div>
+                </div>
+                <div class="ranking-item">
+                    <div class="ranking-number">03</div>
+                    <div class="ranking-content">
+                        <div class="ranking-name">黎平县全域</div>
+                        <div class="ranking-location">黔东南州</div>
+                    </div>
+                    <div class="ranking-value">
+                        <div class="ranking-metric">662</div>
+                        <div class="ranking-unit">万人次</div>
+                    </div>
+                </div>
+                <div class="ranking-item">
+                    <div class="ranking-number">04</div>
+                    <div class="ranking-content">
+                        <div class="ranking-name">黔东南州</div>
+                        <div class="ranking-location">传统村落集聚区</div>
+                    </div>
+                    <div class="ranking-value">
+                        <div class="ranking-metric">409</div>
+                        <div class="ranking-unit">个村落</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pie Chart -->
+            <div class="bento-item bento-small">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">民族分布</div>
+                        <div class="card-subtitle">村寨类型占比</div>
+                    </div>
+                </div>
+                <div class="chart-wrapper-sm" id="ethnicChart"></div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="bento-item bento-small">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">发展历程</div>
+                        <div class="card-subtitle">关键里程碑</div>
+                    </div>
+                </div>
+                <div class="timeline-list">
+                    <div class="timeline-item">
+                        <div class="timeline-year">2012年</div>
+                        <div class="timeline-text">中国传统村落名录制度实施</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2019年</div>
+                        <div class="timeline-text">高铁高速直达肇兴侗寨</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2023年</div>
+                        <div class="timeline-text">旅游收入突破50亿元</div>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-year">2025年</div>
+                        <div class="timeline-text">757个村寨列入保护名录</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Culture Section - Wide -->
+            <div class="bento-item bento-wide">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">非遗文化瑰宝</div>
+                        <div class="card-subtitle">世界级与国家级非物质文化遗产</div>
+                    </div>
+                    <span class="card-tag">UNESCO</span>
+                </div>
+                <div class="culture-grid">
+                    <div class="culture-card">
+                        <div class="culture-emoji">🎵</div>
+                        <div class="culture-title">侗族大歌</div>
+                        <div class="culture-desc">世界非物质文化遗产<br>无伴奏多声部合唱</div>
+                    </div>
+                    <div class="culture-card">
+                        <div class="culture-emoji">🏺</div>
+                        <div class="culture-title">苗族蜡染</div>
+                        <div class="culture-desc">千年历史传承<br>独特"冰纹"效果</div>
+                    </div>
+                    <div class="culture-card">
+                        <div class="culture-emoji">👘</div>
+                        <div class="culture-title">苗族银饰</div>
+                        <div class="culture-desc">精湛锻造技艺<br>精美繁复工艺</div>
+                    </div>
+                    <div class="culture-card">
+                        <div class="culture-emoji">🎭</div>
+                        <div class="culture-title">苗族鼓藏节</div>
+                        <div class="culture-desc">国家级非遗<br>祭祖神圣仪式</div>
+                    </div>
+                    <div class="culture-card">
+                        <div class="culture-emoji">🏯</div>
+                        <div class="culture-title">鼓楼建筑</div>
+                        <div class="culture-desc">侗寨标志性建筑<br>集会议事之所</div>
+                    </div>
+                    <div class="culture-card">
+                        <div class="culture-emoji">🌾</div>
+                        <div class="culture-title">稻鱼共生</div>
+                        <div class="culture-desc">UNESCO农业遗产<br>生态循环典范</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bars -->
+            <div class="bento-item bento-small">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">数据洞察</div>
+                        <div class="card-subtitle">关键指标分析</div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-header">
+                        <span class="progress-label">旅游增长率</span>
+                        <span class="progress-value">286%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 95%;"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-header">
+                        <span class="progress-label">收入增长</span>
+                        <span class="progress-value">327%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-header">
+                        <span class="progress-label">村寨保护率</span>
+                        <span class="progress-value">92%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 92%;"></div>
+                    </div>
+                </div>
+                <div class="progress-item">
+                    <div class="progress-header">
+                        <span class="progress-label">数字化程度</span>
+                        <span class="progress-value">64%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 64%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bar Chart -->
+            <div class="bento-item bento-wide">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">月度游客分布</div>
+                        <div class="card-subtitle">2024年各月接待游客量</div>
+                    </div>
+                    <span class="card-tag">柱状图</span>
+                </div>
+                <div class="chart-wrapper" id="monthlyChart"></div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="bento-item bento-small">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">建筑数据</div>
+                        <div class="card-subtitle">传统建筑统计</div>
+                    </div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-info">
+                        <div class="stat-icon">🏠</div>
+                        <span class="stat-name">吊脚楼</span>
+                    </div>
+                    <span class="stat-value">12K+</span>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-info">
+                        <div class="stat-icon">🗼</div>
+                        <span class="stat-name">鼓楼</span>
+                    </div>
+                    <span class="stat-value">800+</span>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-info">
+                        <div class="stat-icon">🌉</div>
+                        <span class="stat-name">风雨桥</span>
+                    </div>
+                    <span class="stat-value">500+</span>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-info">
+                        <div class="stat-icon">📚</div>
+                        <span class="stat-name">数字博物馆</span>
+                    </div>
+                    <span class="stat-value">486</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quote Section -->
+    <section class="quote-section">
+        <div class="quote-content">
+            <div class="quote-mark">"</div>
+            <p class="quote-text">传统村落是农耕文明的精髓<br>民族文化的家园<br>中华儿女的乡愁</p>
+            <p class="quote-author">—— 贵州省住房城乡建设厅</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">贵州古寨</div>
+            <div class="footer-text">数据来源：贵州省人民政府、贵州省住房城乡建设厅等公开资料 · 2026年4月</div>
+        </div>
+    </footer>
+
+    <script>
+        // 配色方案
+        const colors = {
+            forest: '#2d5a45',
+            sage: '#7c9885',
+            gold: '#c9a227',
+            rust: '#c65d3b',
+            terracotta: '#d4785c',
+            cream: '#faf8f3'
+        };
+
+        // 1. Hero Chart - 环形图
+        const heroChart = echarts.init(document.getElementById('heroChart'));
+        heroChart.setOption({
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                borderColor: colors.forest,
+                textStyle: { color: '#1a1a1a' }
+            },
+            series: [{
+                type: 'pie',
+                radius: ['55%', '85%'],
+                center: ['50%', '50%'],
+                startAngle: 90,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: colors.cream,
+                    borderWidth: 4
+                },
+                label: {
+                    show: true,
+                    position: 'outside',
+                    formatter: '{b}\n{d}%',
+                    color: '#4a4a4a',
+                    fontSize: 13
+                },
+                labelLine: {
+                    length: 15,
+                    length2: 10,
+                    lineStyle: { color: 'rgba(0,0,0,0.2)' }
+                },
+                data: [
+                    { value: 35, name: '苗寨', itemStyle: { color: colors.forest } },
+                    { value: 30, name: '侗寨', itemStyle: { color: colors.sage } },
+                    { value: 15, name: '布依寨', itemStyle: { color: colors.gold } },
+                    { value: 12, name: '其他民族', itemStyle: { color: colors.rust } },
+                    { value: 8, name: '汉族古村', itemStyle: { color: colors.terracotta } }
+                ]
+            }],
+            graphic: [{
+                type: 'text',
+                left: 'center',
+                top: '40%',
+                style: {
+                    text: '村寨类型\n分布',
+                    textAlign: 'center',
+                    fill: '#1a1a1a',
+                    fontSize: 18,
+                    fontWeight: 'bold',
+                    fontFamily: 'Noto Serif SC'
+                }
+            }]
+        });
+
+        // 2. Main Chart - 年度趋势
+        const mainChart = echarts.init(document.getElementById('mainChart'));
+        mainChart.setOption({
+            grid: { top: 20, right: 30, bottom: 30, left: 60 },
+            xAxis: {
+                type: 'category',
+                data: ['2018', '2019', '2020', '2021', '2022', '2023', '2024', '2025'],
+                axisLine: { lineStyle: { color: 'rgba(255,255,255,0.3)' } },
+                axisLabel: { color: 'rgba(255,255,255,0.7)' }
+            },
+            yAxis: {
+                type: 'value',
+                name: '万人次',
+                nameTextStyle: { color: 'rgba(255,255,255,0.5)' },
+                axisLine: { show: false },
+                splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } },
+                axisLabel: { color: 'rgba(255,255,255,0.7)' }
+            },
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(45, 90, 69, 0.95)',
+                borderColor: colors.gold,
+                textStyle: { color: 'white' }
+            },
+            series: [{
+                type: 'line',
+                data: [180, 220, 95, 160, 280, 464, 580, 720],
+                smooth: true,
+                symbol: 'circle',
+                symbolSize: 12,
+                lineStyle: { color: colors.gold, width: 4 },
+                itemStyle: { color: colors.gold, borderColor: 'white', borderWidth: 3 },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(201, 162, 39, 0.4)' },
+                        { offset: 1, color: 'rgba(201, 162, 39, 0.02)' }
+                    ])
+                }
+            }]
+        });
+
+        // 3. Ethnic Chart
+        const ethnicChart = echarts.init(document.getElementById('ethnicChart'));
+        ethnicChart.setOption({
+            tooltip: {
+                trigger: 'item',
+                backgroundColor: 'rgba(255,255,255,0.95)',
+                borderColor: colors.forest,
+                textStyle: { color: '#1a1a1a' }
+            },
+            series: [{
+                type: 'pie',
+                radius: ['40%', '70%'],
+                center: ['50%', '50%'],
+                avoidLabelOverlap: false,
+                itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 3 },
+                label: { show: false },
+                data: [
+                    { value: 35, name: '苗寨', itemStyle: { color: colors.forest } },
+                    { value: 30, name: '侗寨', itemStyle: { color: colors.sage } },
+                    { value: 15, name: '布依寨', itemStyle: { color: colors.gold } },
+                    { value: 20, name: '其他', itemStyle: { color: colors.rust } }
+                ]
+            }]
+        });
+
+        // 4. Monthly Chart
+        const monthlyChart = echarts.init(document.getElementById('monthlyChart'));
+        monthlyChart.setOption({
+            grid: { top: 20, right: 20, bottom: 30, left: 60 },
+            xAxis: {
+                type: 'category',
+                data: ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'],
+                axisLine: { lineStyle: { color: 'rgba(0,0,0,0.1)' } },
+                axisLabel: { color: '#4a4a4a', fontSize: 11, rotate: 45 }
+            },
+            yAxis: {
+                type: 'value',
+                axisLine: { show: false },
+                splitLine: { lineStyle: { color: 'rgba(0,0,0,0.06)' } },
+                axisLabel: { color: '#7a7a7a' }
+            },
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'rgba(45, 90, 69, 0.95)',
+                borderColor: colors.gold,
+                textStyle: { color: 'white' }
+            },
+            series: [{
+                type: 'bar',
+                data: [35, 48, 42, 55, 65, 72, 85, 88, 75, 68, 45, 38].map((v, i) => ({
+                    value: v,
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: i === 7 ? colors.gold : colors.forest },
+                            { offset: 1, color: i === 7 ? colors.terracotta : colors.sage }
+                        ]),
+                        borderRadius: [4, 4, 0, 0]
+                    }
+                })),
+                barWidth: '55%'
+            }]
+        });
+
+        // 响应式
+        window.addEventListener('resize', function () {
+            heroChart.resize();
+            mainChart.resize();
+            ethnicChart.resize();
+            monthlyChart.resize();
+        });
+    </script>
+    <!-- 返回按钮 -->
+    <a href="../arch-list.html" class="back-home-btn" title="返回云游古建">
+        <div class="back-icon"></div>
+    </a>
+    <!-- 3D视图按钮 -->
+    <a href="mjgz3D.html" class="view3d-btn" title="3D视图">
+        <div class="view3d-icon"></div>
+    </a>
+</body>
+
+</html>
